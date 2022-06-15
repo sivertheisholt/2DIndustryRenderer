@@ -16,15 +16,34 @@ export default function ViewPortComponent(props) {
       });
 
       viewport.drag().pinch().wheel().decelerate();
+      /*
       let sprite = PIXI.Sprite.from("../images/Capture.png");
       viewport.addChild(sprite);
       sprite.tint = 0xff0000;
       sprite.width = sprite.height = 100;
       sprite.position.set(100, 100);
-
+      */
       return viewport;
     },
-    applyProps(viewport, _oldProps, _newProps) {},
+    applyProps(viewport, _oldProps, _newProps) {
+      const {
+        plugins: oldPlugins,
+        children: oldChildren,
+        ...oldProps
+      } = _oldProps;
+      const {
+        plugins: newPlugins,
+        children: newChildren,
+        ...newProps
+      } = _newProps;
+
+      Object.keys(newProps).forEach((p) => {
+        if (oldProps[p] !== newProps[p]) {
+          viewport[p] = newProps[p];
+        }
+      });
+      console.log(viewport);
+    },
     didMount() {
       console.log("viewport mounted");
     },
