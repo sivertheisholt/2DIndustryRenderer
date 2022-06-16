@@ -1,56 +1,55 @@
-import { Container, PixiComponent, Sprite, useApp } from "@inlet/react-pixi";
+import { PixiComponent, useApp } from "@inlet/react-pixi";
 import React from "react";
+import { forwardRef } from "react";
 import { Viewport } from "pixi-viewport";
-import * as PIXI from "pixi.js";
 
-export default function ViewPortComponent(props) {
-  const PixiViewportComponent = PixiComponent("Viewport", {
-    create(props) {
-      const viewport = new Viewport({
-        screenWidth: window.innerWidth,
-        screenHeight: window.innerHeight,
-        worldWidth: 1000,
-        worldHeight: 1000,
+const PixiViewportComponent = PixiComponent("Viewport", {
+  create(props) {
+    const { app, ...viewportProps } = props;
 
-        interaction: props.app.renderer.plugins.interaction, // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
-      });
+    const viewport = new Viewport({
+      ticker: props.app.ticker,
+      interaction: props.app.renderer.plugins.interaction,
 
-      viewport.drag().pinch().wheel().decelerate();
-      /*
-      let sprite = PIXI.Sprite.from("../images/Capture.png");
-      viewport.addChild(sprite);
-      sprite.tint = 0xff0000;
-      sprite.width = sprite.height = 100;
-      sprite.position.set(100, 100);
-      */
-      return viewport;
-    },
-    applyProps(viewport, _oldProps, _newProps) {
-      const {
-        plugins: oldPlugins,
-        children: oldChildren,
-        ...oldProps
-      } = _oldProps;
-      const {
-        plugins: newPlugins,
-        children: newChildren,
-        ...newProps
-      } = _newProps;
+      ...viewportProps,
+    });
 
-      Object.keys(newProps).forEach((p) => {
-        if (oldProps[p] !== newProps[p]) {
-          viewport[p] = newProps[p];
-        }
-      });
-      console.log(viewport);
-    },
-    didMount() {
-      console.log("viewport mounted");
-    },
-  });
-  return (
-    <>
-      <PixiViewportComponent app={props.app}></PixiViewportComponent>
-    </>
-  );
-}
+    viewport.on("clicked", (e) => {
+      props.onClickView(e);
+    });
+
+    // activate plugins
+    (props.plugins || []).forEach((plugin) => {
+      viewport[plugin]();
+    });
+
+    return viewport;
+  },
+  applyProps(viewport, _oldProps, _newProps) {
+    const {
+      plugins: oldPlugins,
+      children: oldChildren,
+      ...oldProps
+    } = _oldProps;
+    const {
+      plugins: newPlugins,
+      children: newChildren,
+      ...newProps
+    } = _newProps;
+
+    Object.keys(newProps).forEach((p) => {
+      if (oldProps[p] !== newProps[p]) {
+        viewport[p] = newProps[p];
+      }
+    });
+  },
+  didMount() {
+    console.log("viewport mounted");
+  },
+});
+
+const PixiViewport = forwardRef((props, ref) => (
+  <PixiViewportComponent ref={ref} app={useApp()} {...props} />
+));
+
+export default PixiViewport;
