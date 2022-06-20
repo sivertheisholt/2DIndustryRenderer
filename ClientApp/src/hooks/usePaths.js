@@ -1,42 +1,29 @@
 import { useState } from "react";
 
 const usePaths = () => {
-  const [paths, setPaths] = useState(new Map());
-  let newPathX = [];
-  let newPathY = [];
-  let startPathCreation = false;
+  const [paths] = useState(new Map());
+  const [newPathXY, setNewPathXY] = useState({ x: [], y: [] });
 
   const setPath = (key) => {
     let path = {
-      x: newPathX,
-      y: newPathY,
+      x: newPathXY.x,
+      y: newPathXY.y,
     };
     paths.set(key, path);
+    setNewPathXY({ x: [], y: [] });
   };
 
   const getPath = (key) => {
     return paths.get(key);
   };
 
-  const pathCreation = (key) => {
-    if (startPathCreation) {
-      startPathCreation = false;
-      setPath(key);
-    } else {
-      startPathCreation = true;
-    }
-    return startPathCreation;
-  };
-
-  const dragPath = (e) => {
-    if (startPathCreation) {
-      newPathX.push(e.pageX);
-      newPathY.push(e.pageY);
-    }
+  const dragPath = (XY) => {
+    newPathXY.x.push(XY.x);
+    newPathXY.y.push(XY.y);
   };
 
   return {
-    pathCreation: pathCreation,
+    pathCreation: setPath,
     dragPath: dragPath,
     getPath: getPath,
   };

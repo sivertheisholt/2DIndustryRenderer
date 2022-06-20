@@ -32,12 +32,10 @@ export default function EntitiesRender(props) {
   };
 
   const updatePath = (id) => {
-    let pathCreation = paths.pathCreation(id);
-    if (!pathCreation) {
-      let tempMap = new Map(entities);
-      tempMap.get(id).path = paths.getPath(id);
-      setEntities(tempMap);
-    }
+    paths.pathCreation(id);
+    let tempMap = new Map(entities);
+    tempMap.get(id).path = paths.getPath(id);
+    setEntities(tempMap);
   };
 
   useEffect(() => {

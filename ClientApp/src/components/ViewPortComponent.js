@@ -6,6 +6,7 @@ import { Viewport } from "pixi-viewport";
 const PixiViewportComponent = PixiComponent("Viewport", {
   create(props) {
     const { app, ...viewportProps } = props;
+    console.log(props);
 
     const viewport = new Viewport({
       ticker: props.app.ticker,
@@ -13,7 +14,7 @@ const PixiViewportComponent = PixiComponent("Viewport", {
 
       ...viewportProps,
     });
-    viewport.clampZoom({ minWidth: 100, maxWidth: 713 });
+    viewport.clampZoom({ minWidth: 100, maxWidth: props.worldWidth });
     viewport.clamp({ direction: "all" });
 
     viewport.on("clicked", (e) => {

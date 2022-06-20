@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const useEntitiesRender = () => {
-  const [renders, setRenders] = useState(new Map());
+  const [renders] = useState(new Map());
   const addRender = (renderId, updatePath, dragPath, createEntity) => {
     renders.set(renderId, {
       updatePath: updatePath,
@@ -15,9 +15,9 @@ const useEntitiesRender = () => {
     render.updatePath(entityId);
   };
 
-  const dragPath = (renderId, e, entityId) => {
+  const dragPath = (renderId, XY) => {
     let render = renders.get(renderId);
-    render.dragPath(e, entityId);
+    render.dragPath(XY);
   };
 
   const createEntity = (renderId, entityOptions) => {

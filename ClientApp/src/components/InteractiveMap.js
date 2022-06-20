@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useRef, useState } from "react";
 import { Sprite, Stage } from "@inlet/react-pixi";
 import myImage from "../images/Capture.png";
@@ -8,35 +8,44 @@ import useEntitiesRender from "../hooks/useEntitiesRender.js";
 import CreateEntityModal from "./CreateEntityModal";
 import Button from "react-bootstrap/esm/Button";
 import GhostEntity from "./GhostEntity";
-import { Viewport } from "pixi-viewport";
+import Circle from "./Circle";
 
 export default function InteractiveMap(props) {
   const addEntityTable = props.addEntityTable;
   const getSelected = props.getSelected;
 
-  const [entitiesCount, setEntitiesCount] = useState(0);
   const [show, setShow] = useState(false);
   const [mapStates] = useState({
     onClickStatus: "",
     onDragStatus: "",
+    isMouseDown: false,
     newEntityInfo: {},
     ghostEntityX: 0,
     ghostEntityY: 0,
+    entitiesCount: 0,
   });
   const [showPlaceEntity, setShowPlaceEntity] = useState(false);
   const [ghostEntityXY, setGhostEntityXY] = useState({ x: 0, y: 0 });
+  const [drawPathPoints, setDrawPathPoints] = useState([{ x: null, y: null }]);
 
   const viewportRef = useRef();
 
   const entitiesRenders = useEntitiesRender();
 
   const onMouseDragView = (e) => {
+    let cords = viewportRef.current.toWorld(e.pageX, e.pageY);
     switch (mapStates.onDragStatus) {
       case "NewEntity":
-        setGhostEntityXY({ x: e.pageX, y: e.pageY });
+        setGhostEntityXY({
+          x: cords.x,
+          y: cords.y,
+        });
         break;
       case "CreatePath":
-        entitiesRenders.dragPath(1, e, getSelected());
+        if (mapStates.isMouseDown) {
+          entitiesRenders.dragPath(1, cords, getSelected());
+          setDrawPathPoints([...drawPathPoints, cords]);
+        }
         break;
       default:
     }
@@ -49,31 +58,45 @@ export default function InteractiveMap(props) {
         setShowPlaceEntity(false);
         break;
       case "CreatePath":
-        entitiesRenders.updatePath(1, getSelected());
         break;
       default:
     }
   };
+  const onMouseDown = (e) => {
+    mapStates.isMouseDown = true;
+  };
+
+  const onMouseUp = (e) => {
+    mapStates.isMouseDown = false;
+  };
 
   const createEntity = (e) => {
     addEntityTable(1, {
-      id: entitiesCount,
+      id: mapStates.entitiesCount,
       name: mapStates.newEntityInfo.name,
     });
 
     entitiesRenders.createEntity(1, {
-      id: entitiesCount,
+      id: mapStates.entitiesCount,
       name: mapStates.newEntityInfo.name,
       x: e.world.x,
       y: e.world.y,
       scale: mapStates.newEntityInfo.scale,
       type: mapStates.newEntityInfo.type,
     });
-    setEntitiesCount(entitiesCount + 1);
+    mapStates.entitiesCount++;
   };
 
-  const onCreatePath = () => {};
-
+  const onCreatePath = () => {
+    mapStates.onDragStatus = "CreatePath";
+    viewportRef.current.drag({ mouseButtons: "middle" });
+  };
+  const confirmPath = () => {
+    mapStates.onDragStatus = "";
+    mapStates.onClickStatus = "";
+    entitiesRenders.updatePath(1, getSelected());
+    viewportRef.current.drag({ mouseButtons: "left" });
+  };
   const showCreateEntityModal = () => {
     setShow(true);
   };
@@ -92,6 +115,8 @@ export default function InteractiveMap(props) {
         height={817}
         options={{ backgroundColor: 0xeef1f5 }}
         onMouseMove={onMouseDragView}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
       >
         <ViewPortComponent
           ref={viewportRef}
@@ -104,6 +129,14 @@ export default function InteractiveMap(props) {
           onMouseMove={onMouseDragView}
         >
           <Sprite image={myImage} x={0} y={0}></Sprite>
+
+          {mapStates.onDragStatus === "CreatePath" ? (
+            drawPathPoints.map((point, index) => {
+              return <Circle x={point.x} y={point.y} key={`${index}`} />;
+            })
+          ) : (
+            <></>
+          )}
 
           <EntitiesRender
             addEntitiesRender={entitiesRenders.addRender}
@@ -125,7 +158,10 @@ export default function InteractiveMap(props) {
       <Button onClick={showCreateEntityModal} style={{ marginRight: "5px" }}>
         Create entity
       </Button>
-      <Button onClick={onCreatePath}>Create Path</Button>
+      <Button onClick={onCreatePath} style={{ marginRight: "5px" }}>
+        Create Path
+      </Button>
+      <Button onClick={confirmPath}>Confirm Path</Button>
       {show ? (
         <CreateEntityModal
           setNewEntityInfo={setNewEntityInfo}
