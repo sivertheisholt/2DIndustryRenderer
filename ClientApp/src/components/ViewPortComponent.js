@@ -13,6 +13,8 @@ const PixiViewportComponent = PixiComponent("Viewport", {
 
       ...viewportProps,
     });
+    viewport.clampZoom({ minWidth: 100, maxWidth: 713 });
+    viewport.clamp({ direction: "all" });
 
     viewport.on("clicked", (e) => {
       props.onClickView(e);

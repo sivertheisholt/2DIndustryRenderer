@@ -1,72 +1,70 @@
 import React from "react";
-import Machine from "./Machine";
+import MovableEntity from "./MovableEntity";
 import RenderEntity from "../Entities/RenderEntitity";
+import useAnimations from "../hooks/useAnimations";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import usePaths from "../hooks/usePaths";
+import StaticEntity from "./StaticEntity";
 
 export default function EntitiesRender(props) {
   const [entities, setEntities] = useState(new Map());
-  const childMachine = useRef(null);
 
-  let startPathCreation = false;
-  let newPathX = [];
-  let newPathY = [];
+  const addAnimationStartButton = props.addAnimationStartButton;
+  const addEntitiesRender = props.addEntitiesRender;
 
-  const setPath = (entity) => {
-    entity.path = {
-      x: newPathX,
-      y: newPathY,
-    };
-    let tempMap = new Map(entities);
-    tempMap.set(entity.id, entity);
-    setEntities(tempMap);
-  };
+  const animations = useAnimations();
+  const paths = usePaths();
 
-  const onClickStartPath = (e, id) => {
-    if (startPathCreation) {
-      setPath(entities.get(id));
-      startPathCreation = false;
-    } else {
-      startPathCreation = true;
-    }
-  };
-
-  const dragPath = (e) => {
-    if (startPathCreation) {
-      console.log(e.pageX);
-      newPathX.push(e.pageX);
-      newPathY.push(e.pageY);
-    }
-  };
-
-  const newEntity = (id, name, x, y, scale) => {
-    console.log("Test");
-    const entity = new RenderEntity(id, name, x, y, scale, {});
-    entities.set(id, entity);
+  const newEntity = (entityOptions) => {
+    const entity = new RenderEntity(
+      entityOptions.id,
+      entityOptions.name,
+      entityOptions.x,
+      entityOptions.y,
+      entityOptions.scale,
+      {},
+      "MovableEntity"
+    );
+    entities.set(entityOptions.id, entity);
     let temp = new Map(entities);
     setEntities(temp);
   };
 
+  const updatePath = (id) => {
+    let pathCreation = paths.pathCreation(id);
+    if (!pathCreation) {
+      let tempMap = new Map(entities);
+      tempMap.get(id).path = paths.getPath(id);
+      setEntities(tempMap);
+    }
+  };
+
   useEffect(() => {
-    props.onClickViewRef.current = onClickStartPath;
-    props.onMouseMoveRef.current = dragPath;
-    props.createEntityRef.current = newEntity;
+    addAnimationStartButton(1, animations.startAnimation);
   });
+
+  addEntitiesRender(props.id, updatePath, paths.dragPath, newEntity);
 
   return (
     <>
       {[...entities.keys()].map((entity) => {
         let entityValue = entities.get(entity);
-        return (
-          <Machine
-            key={entityValue.id}
-            machineAnimation={childMachine}
-            scale={entityValue.scale}
-            x={entityValue.x}
-            y={entityValue.y}
-            path={entityValue.path}
-          />
-        );
+        if (entityValue.type === "MovableEntity") {
+          return (
+            <MovableEntity
+              key={entityValue.id}
+              id={entityValue.id}
+              addAnimation={animations.addAnimation}
+              scale={entityValue.scale}
+              x={entityValue.x}
+              y={entityValue.y}
+              path={entityValue.path}
+            />
+          );
+        } else {
+          return <StaticEntity />;
+        }
       })}
     </>
   );

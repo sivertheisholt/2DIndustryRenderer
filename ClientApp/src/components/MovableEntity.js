@@ -3,21 +3,19 @@ import { React, useReducer } from "react";
 import { useState, useEffect } from "react";
 const reducer = (_, { data }) => data;
 
-export default function Machine(props) {
+export default function MovableEntity(props) {
   const [xPos, setXPos] = useState(0);
   const [yPos, setYPos] = useState(0);
-
   const [motion, update] = useReducer(reducer);
-  const [startAnimation, setStartAnimation] = useState(false);
+  const [animation, setAnimation] = useState(false);
 
-  useEffect(() => {
-    props.machineAnimation.current = () => {
-      setStartAnimation(true);
-    };
-  });
+  const startAnimation = () => {
+    console.log("Starting animation");
+    setAnimation(true);
+  };
 
   useTick((delta) => {
-    if (startAnimation) {
+    if (animation) {
       update({
         type: "update",
         data: {
@@ -25,9 +23,19 @@ export default function Machine(props) {
           y: props.path.y[yPos],
         },
       });
-      setXPos(xPos + 1);
-      setYPos(yPos + 1);
+      if (xPos - 1 >= props.path.x.length) {
+        setAnimation(false);
+        setXPos(0);
+        setYPos(0);
+      } else {
+        setXPos(xPos + 1);
+        setYPos(yPos + 1);
+      }
     }
+  });
+
+  useEffect(() => {
+    props.addAnimation(startAnimation, props.id);
   });
 
   return (
