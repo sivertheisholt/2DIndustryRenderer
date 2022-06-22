@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const useAnimations = () => {
-  const [animations, setAnimations] = useState(new Map());
+  const [animations] = useState(new Map());
 
   //KEY == ENTITY KEY
   const startAnimation = (key) => {
@@ -14,7 +14,7 @@ const useAnimations = () => {
     animations.set(key, fStartAnimation);
   };
 
-  return { startAnimation: startAnimation, addAnimation: addAnimation };
+  return { startAnimation, addAnimation };
 };
 
 export default useAnimations;

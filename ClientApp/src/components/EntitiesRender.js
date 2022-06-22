@@ -1,17 +1,16 @@
 import React from "react";
-import MovableEntity from "./MovableEntity";
+import MovableEntity from "./entities/MovableEntity";
 import RenderEntity from "../Entities/RenderEntitity";
 import useAnimations from "../hooks/useAnimations";
 
 import { useState, useEffect } from "react";
 import usePaths from "../hooks/usePaths";
-import StaticEntity from "./StaticEntity";
+import StaticEntity from "./entities/StaticEntity";
 
 export default function EntitiesRender(props) {
+  const { addAnimationStart, addAnimationStartButton, addEntitiesRender } =
+    props;
   const [entities, setEntities] = useState(new Map());
-
-  const addAnimationStartButton = props.addAnimationStartButton;
-  const addEntitiesRender = props.addEntitiesRender;
 
   const animations = useAnimations();
   const paths = usePaths();
@@ -24,7 +23,7 @@ export default function EntitiesRender(props) {
       entityOptions.y,
       entityOptions.scale,
       {},
-      "MovableEntity"
+      entityOptions.type
     );
     entities.set(entityOptions.id, entity);
     let temp = new Map(entities);
@@ -39,6 +38,7 @@ export default function EntitiesRender(props) {
   };
 
   useEffect(() => {
+    addAnimationStart(1, animations.startAnimation);
     addAnimationStartButton(1, animations.startAnimation);
   });
 
@@ -61,7 +61,15 @@ export default function EntitiesRender(props) {
             />
           );
         } else {
-          return <StaticEntity />;
+          return (
+            <StaticEntity
+              image={entityValue.image}
+              x={entityValue.x}
+              y={entityValue.y}
+              scale={entityValue.scale}
+              key={entityValue.id}
+            />
+          );
         }
       })}
     </>

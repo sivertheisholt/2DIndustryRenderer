@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const useEntityTable = () => {
-  const [tables, setTables] = useState(new Map());
+  const [tables] = useState(new Map());
   let selected = null;
 
   const addTable = (tableId, addEntityFunc) => {

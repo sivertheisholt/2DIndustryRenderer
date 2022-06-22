@@ -7,14 +7,12 @@ export default function CreateEntityModal(props) {
   const setNewEntityInfo = props.setNewEntityInfo;
   let entity = {
     name: "New Entity",
-    scale: 1,
     type: "",
   };
 
   const handleClose = () => {
     setShowModal(false);
   };
-  const handleShow = () => setShowModal(true);
 
   return (
     <>
@@ -32,18 +30,6 @@ export default function CreateEntityModal(props) {
               id="name"
               onChange={(e) => {
                 entity.name = e.target.value;
-              }}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="scale">Entity scale:</label>
-            <input
-              type="number"
-              defaultValue={1}
-              className="form-control"
-              id="scale"
-              onChange={(e) => {
-                entity.scale = e.target.value;
               }}
             />
           </div>

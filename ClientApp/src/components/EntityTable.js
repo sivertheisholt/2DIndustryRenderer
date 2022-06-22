@@ -3,8 +3,8 @@ import { useState } from "react";
 
 export default function EntityTable(props) {
   const [entities, setEntities] = useState([]);
+  let [selectedRowId] = useState(null);
   const addTable = props.addTable;
-  let [selectedRowId, setSelectedRowId] = useState(null);
 
   const addEntity = (entity) => {
     let tempArray = [...entities];

@@ -1,18 +1,26 @@
 import React from "react";
 import { useRef, useState } from "react";
 import { Sprite, Stage } from "@inlet/react-pixi";
-import myImage from "../images/Capture.png";
+import myImage from "../images/Map.jpg";
 import ViewPortComponent from "./ViewPortComponent";
 import EntitiesRender from "./EntitiesRender";
 import useEntitiesRender from "../hooks/useEntitiesRender.js";
 import CreateEntityModal from "./CreateEntityModal";
 import Button from "react-bootstrap/esm/Button";
-import GhostEntity from "./GhostEntity";
+import GhostEntity from "./entities/GhostEntity";
 import Circle from "./Circle";
 
+import testImage from "../images/factory.png";
+
 export default function InteractiveMap(props) {
-  const addEntityTable = props.addEntityTable;
-  const getSelected = props.getSelected;
+  const {
+    addEntityTable,
+    getSelected,
+    addInteractiveMap,
+    addAnimationStartButton,
+    mapAddAnimationToEntity,
+    id,
+  } = props;
 
   const [show, setShow] = useState(false);
   const [mapStates] = useState({
@@ -25,7 +33,12 @@ export default function InteractiveMap(props) {
     entitiesCount: 0,
   });
   const [showPlaceEntity, setShowPlaceEntity] = useState(false);
-  const [ghostEntityXY, setGhostEntityXY] = useState({ x: 0, y: 0 });
+  const [ghostEntityInfo, setGhostEntityInfo] = useState({
+    x: 0,
+    y: 0,
+    scale: 1,
+    image: "",
+  });
   const [drawPathPoints, setDrawPathPoints] = useState([{ x: null, y: null }]);
 
   const viewportRef = useRef();
@@ -36,9 +49,11 @@ export default function InteractiveMap(props) {
     let cords = viewportRef.current.toWorld(e.pageX, e.pageY);
     switch (mapStates.onDragStatus) {
       case "NewEntity":
-        setGhostEntityXY({
+        setGhostEntityInfo({
           x: cords.x,
           y: cords.y,
+          scale: 1 / viewportRef.current.scale.x,
+          image: testImage,
         });
         break;
       case "CreatePath":
@@ -81,7 +96,7 @@ export default function InteractiveMap(props) {
       name: mapStates.newEntityInfo.name,
       x: e.world.x,
       y: e.world.y,
-      scale: mapStates.newEntityInfo.scale,
+      scale: 1 / viewportRef.current.scale.x,
       type: mapStates.newEntityInfo.type,
     });
     mapStates.entitiesCount++;
@@ -108,11 +123,13 @@ export default function InteractiveMap(props) {
     setShowPlaceEntity(true);
   };
 
+  addInteractiveMap(id, onMouseClickView, onMouseDragView);
+
   return (
     <>
       <Stage
-        width={713}
-        height={817}
+        width={800}
+        height={1000}
         options={{ backgroundColor: 0xeef1f5 }}
         onMouseMove={onMouseDragView}
         onMouseDown={onMouseDown}
@@ -121,10 +138,10 @@ export default function InteractiveMap(props) {
         <ViewPortComponent
           ref={viewportRef}
           plugins={["drag", "pinch", "wheel", "decelerate"]}
-          screenWidth={713}
-          screenHeight={817}
-          worldWidth={713}
-          worldHeight={817}
+          screenWidth={800}
+          screenHeight={1000}
+          worldWidth={4800}
+          worldHeight={2914}
           onClickView={onMouseClickView}
           onMouseMove={onMouseDragView}
         >
@@ -140,15 +157,18 @@ export default function InteractiveMap(props) {
 
           <EntitiesRender
             addEntitiesRender={entitiesRenders.addRender}
-            addAnimationStartButton={props.addAnimationStartButton}
+            addAnimationStartButton={addAnimationStartButton}
+            addAnimationStart={mapAddAnimationToEntity}
             id={1}
             getSelected={getSelected}
           />
           {showPlaceEntity ? (
             <GhostEntity
-              image="https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/IaUrttj.png"
+              image={ghostEntityInfo.image}
               show={showPlaceEntity}
-              XY={ghostEntityXY}
+              x={ghostEntityInfo.x}
+              y={ghostEntityInfo.y}
+              scale={ghostEntityInfo.scale}
             />
           ) : (
             <></>
